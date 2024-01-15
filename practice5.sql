@@ -11,7 +11,6 @@ round(sum(case when texts.signup_action ='Confirmed' then 1 else 0 end)*1.0/coun
 from texts inner join emails on texts.email_id=emails.email_id
 where emails.email_id is not null
 
-  --tai sao lai dung sum thay vi count? tai sao phai *1.0--
 
 /* bai 3: Write a query to obtain a breakdown of the time spent sending vs. opening snaps as a percentage of total time spent on these activities grouped by age group. Round the percentage to 2 decimal places in the output.*/
 
