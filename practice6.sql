@@ -6,15 +6,27 @@ from (select company_id, title, description, COUNT(*)
       having count(*)>1) as duplicate_companies
 
 /* bai 2: write a query to identify the top two highest-grossing products within each category in the year 2022. The output should include the category, product, and total spend.*/
-EM KHONG BIET LAM BAI NAY
-   select category, product, total_spend
+(select category, product, total_spend
  from
  (select category, product, sum(spend) as total_spend
  from product_spend
  where extract(year from transaction_date) =2022
  group by category, product) as a
+ where category = 'appliance'
  order by category, total_spend desc 
- limit 2 
+ limit 2 )
+
+UNION ALL
+
+(select category, product, total_spend
+ from
+ (select category, product, sum(spend) as total_spend
+ from product_spend
+ where extract(year from transaction_date) =2022
+ group by category, product) as a
+ where category = 'electronics'
+ order by category, total_spend desc 
+ limit 2 )
 
 /* bai 3: Write a query to find how many UHG members made 3 or more calls. case_id column uniquely identifies each call made.*/
 SELECT count(policy_holder_id) as member_count
