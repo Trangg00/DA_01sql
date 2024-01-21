@@ -37,14 +37,14 @@ group by a.transaction_date, a.user_id
 
 select user_id, tweet_date,
 case when lag1 =0 and lag2 =0 then round(tweet_count,2)
-when lag2 =0 then round((tweet_count+lag1)/2,2)
-else round((lag1+tweet_count+lag2)/3,2)
+when lag2 =0 then round((tweet_count+lag1)/2::decimal,2)
+else round((lag1+tweet_count+lag2)/3::decimal,2)
 end as rolling_avg_3d
 FROM(
 SELECT user_id, tweet_date, tweet_count, 
 lag(tweet_count,1,0) over (partition by user_id order by tweet_date ) as lag1,
 lag(tweet_count,2,0) over (partition by user_id order by tweet_date ) as lag2
-FROM tweets) as a 
+FROM tweets) as a  
   
 /* bai 6: Using the transactions table, identify any payments made at the same merchant with the same credit card for the same amount within 10 minutes of each other. Count such repeated payments.*/
   
