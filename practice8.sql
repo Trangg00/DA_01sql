@@ -78,7 +78,61 @@ where (tiv_2015) in
     group by lat, lon 
     having count(*) = 1)
 
-/* bai 6: 
+/* bai 6: A company's executives are interested in seeing who earns the most money in each of the company's departments. A high earner in a department is an employee who has a salary in the top three unique salaries for that department.*/
+
+select Department, Employee, Salary
+from
+(select d.name as Department, e.name as Employee, e.salary as Salary,
+dense_rank() over (partition by d.name order by e.salary desc) as stt
+from Employee e join Department d on e.departmentId=d.id) a
+where a.stt <=3
+
+/* bai 7: There is a queue of people waiting to board a bus. However, the bus has a weight limit of 1000 kilograms, so there may be some people who cannot board.
+Write a solution to find the person_name of the last person that can fit on the bus without exceeding the weight limit. The test cases are generated such that the first person does not exceed the weight limit*/
+
+select person_name
+from 
+(select turn, person_id, person_name, weight,
+sum(weight) over (order by turn) as total_weight
+from Queue) a
+where total_weight <=1000 
+order by total_weight desc
+limit 1
+
+/* bai 8: Write a solution to find the prices of all products on 2019-08-16. Assume the price of all products before any change is 10.*/
+
+select product_id, 
+first_value(new_price) over (partition by product_id order by change_date desc) as price
+from Products
+where change_date <='2019-08-16'
+union
+select product_id, 10 as price
+from Products
+group by product_id
+having min(change_date) >'2019-08-16'
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
