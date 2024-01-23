@@ -23,14 +23,23 @@ from delivery
 where a.rank=1
 
 /* bai 2: Write a solution to report the fraction of players that logged in again on the day after the day they first logged in, rounded to 2 decimal places. In other words, you need to count the number of players that logged in for at least two consecutive days starting from their first login date, then divide that number by the total number of players.*/
-???
-select round(count(distinct player_id)/(select count(distinct player_id) from Activity) ::decimal,2) as fraction
-from
-(select player_id, event_date,
-lead(event_date) over(partition by player_id) as next_day,
-lead(event_date) over(partition by player_id) - event_date as diff
+
+select round(sum(diff)/count(distinct player_id)::decimal,2) as fraction
+from(
+select player_id, event_date,
+min(event_date) over (partition by player_id),
+event_date - min(event_date) over (partition by player_id) as diff
 from Activity) a
-where diff = 1
+where diff <= 1
+
+--HOẶC
+  SELECT ROUND(SUM(login)/COUNT(DISTINCT player_id), 2) AS fraction
+FROM (
+  SELECT
+    player_id,
+    DATEDIFF(event_date, MIN(event_date) OVER(PARTITION BY player_id)) = 1 AS login
+  FROM Activity
+) AS t
 
 /* bai 3: Write a solution to swap the seat id of every two consecutive students. If the number of students is odd, the id of the last student is not swapped.*/
 
@@ -46,7 +55,13 @@ order by id
 /* bai 4: You are the restaurant owner and you want to analyze a possible expansion (there will be at least one customer every day).
 Compute the moving average of how much the customer paid in a seven days window (i.e., current day + 6 days before). average_amount should be rounded to two decimal places.
 Return the result table ordered by visited_on in ascending order.*/
-???
+
+select b.visited_on, sum(a.amount) as amount, round(sum(a.amount)/7:: decimal,2) as average_amount
+from Customer a, (select distinct visited_on from Customer) b
+where b.visited_on - a.visited_on between 0 and 6
+group by b.visited_on
+having count(distinct a.visited_on)=7
+ -- 
   select visited_on,
 amount+a1+a2+a3+a4+a5+a6 as amount,
 round(amount/7,2) as average_amount
