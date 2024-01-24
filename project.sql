@@ -5,7 +5,38 @@ alter column quantityordered type numeric using (trim(quantityordered)::numeric)
 alter table sales_dataset_rfm_prj
 alter column priceeach type numeric using (trim(priceeach)::numeric);
 alter table sales_dataset_rfm_prj
-alter column orderdate type timestamp 
+alter column orderdate type timestamp ;
+alter table sales_dataset_rfm_prj
+alter column ordernumber type numeric using (trim(ordernumber)::numeric) ;
+alter table sales_dataset_rfm_prj
+alter column orderlinenumber type numeric using (trim(orderlinenumber)::numeric) ;
+alter table sales_dataset_rfm_prj
+alter column sales type decimal using (trim(sales)::decimal) ;
+alter table sales_dataset_rfm_prj
+alter column status type text using (trim(status)::text) ;
+alter table sales_dataset_rfm_prj
+alter column productline type text using (trim(productline)::text) ;
+alter table sales_dataset_rfm_prj
+alter column msrp type int using (trim(msrp)::int) ;
+alter table sales_dataset_rfm_prj
+alter column productcode type varchar using (trim(productcode)::varchar) ;
+alter table sales_dataset_rfm_prj
+alter column customername type text using (trim(customername)::text) ;
+alter table sales_dataset_rfm_prj
+alter column phone type varchar using (trim(phone)::varchar) ;
+alter table sales_dataset_rfm_prj
+alter column addressline1 type text using (trim(addressline1)::text) ;
+alter table sales_dataset_rfm_prj
+alter column addressline2 type text using (trim(addressline2)::text) ;
+alter table sales_dataset_rfm_prj
+alter column city type text using (trim(city)::text) ;
+alter table sales_dataset_rfm_prj
+alter column state type text using (trim(state)::text) ;
+alter table sales_dataset_rfm_prj
+alter column postalcode type varchar using (trim(postalcode)::varchar) ;
+
+create view view_sales_dataset as
+(select * from sales_dataset_rfm_prj)
 
 --2. Check NULL/BLANK (‘’)  ở các trường: ORDERNUMBER, QUANTITYORDERED, PRICEEACH, ORDERLINENUMBER, SALES, ORDERDATE.
 
