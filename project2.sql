@@ -33,19 +33,22 @@ where format_date('%Y-%m', date (created_at)) between '2019-01' and '2022-04')
 
 select * from (
 select format_date('%Y-%m', date(b.delivered_at)) as month_year,
-b.product_id, a.name, a.cost,
+b.product_id, a.name,
+sum(a.cost) as cost,
 sum(b.sale_price) as sales, 
-(sum(b.sale_price)-a.cost) as profit,
-dense_rank() over(order by (sum(b.sale_price)-a.cost) desc) as rank_per_month
-from bigquery-public-data.thelook_ecommerce.products as a join bigquery-public-data.thelook_ecommerce.order_items as b on a.id = b.product_id 
-group by 1,2,3,4) as c
+(sum(b.sale_price)-sum(a.cost)) as profit,
+dense_rank() over( order by (sum(b.sale_price)-sum(a.cost)) desc) as rank_per_month
+from bigquery-public-data.thelook_ecommerce.products as a join bigquery-public-data.thelook_ecommerce.order_items as b on a.id = b.product_id
+group by 1,2,3 ) as c
 where rank_per_month <=5
+  order by rank_per_month
 
 /* 5. Thống kê tổng doanh thu theo ngày của từng danh mục sản phẩm (category) trong 3 tháng qua ( giả sử ngày hiện tại là 15/4/2022) */
 
-select  
-delivered_at "2022-04-15 0:00:00" as original_date,
-  DATETIME_ADD(delivered_at "2022-04-15 0:00:00", INTERVAL 3 month) as later
+select product_id, format_date('%Y-%m-%d', date(delivered_at)) as dates,
+sum(sale_price) over(partition by product_id, format_date('%Y-%m-%d', date(delivered_at))) as revenue
+from bigquery-public-data.thelook_ecommerce.order_items
+where status = 'Complete' and (format_date('%Y-%m-%d', date(delivered_at)) between '2022-01-15' and '2022-04-15')
 
 
 
