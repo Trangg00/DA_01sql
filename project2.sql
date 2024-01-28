@@ -51,9 +51,18 @@ from bigquery-public-data.thelook_ecommerce.order_items a join bigquery-public-d
 on a.product_id =b.id 
 where a.status = 'Complete' and (format_date('%Y-%m-%d', date(a.delivered_at)) between '2022-01-15' and '2022-04-15')
 
-
-
-
+1.
+select 
+format_date('%Y-%m', date (b.delivered_at)) as month,
+format_date('%Y', date (b.delivered_at)) as year,
+a.category as product_category, 
+sum(a.cost) over (partition by format_date('%Y-%m', date (b.delivered_at))) as total_cost,
+sum(b.sale_price) over (partition by format_date('%Y-%m', date (b.delivered_at))) as tpv,
+count(b.order_id) over (partition by format_date('%Y-%m', date (b.delivered_at))) as tpo,
+sum(b.sale_price) over (partition by format_date('%Y-%m', date (b.delivered_at))) - sum(a.cost) over (partition by format_date('%Y-%m', date (b.delivered_at))) as total_profit,
+round(100.00*(sum(b.sale_price) over (partition by format_date('%Y-%m', date (b.delivered_at))) - sum(a.cost) over (partition by format_date('%Y-%m', date (b.delivered_at)))) / sum(a.cost) over (partition by format_date('%Y-%m', date (b.delivered_at))),4) as profit_to_cost_ratio
+from bigquery-public-data.thelook_ecommerce.products as a join bigquery-public-data.thelook_ecommerce.order_items as b on a.id=b.product_id 
+where b.status = 'Complete'
 
 
 
