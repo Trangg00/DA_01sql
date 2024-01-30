@@ -50,45 +50,54 @@ sum(a.sale_price) over(partition by b.category, format_date('%Y-%m-%d', date(a.d
 from bigquery-public-data.thelook_ecommerce.order_items a join bigquery-public-data.thelook_ecommerce.products b 
 on a.product_id =b.id 
 where a.status = 'Complete' and (format_date('%Y-%m-%d', date(a.delivered_at)) between '2022-01-15' and '2022-04-15')
+  
 
-1.
-select 
-format_date('%Y-%m', date (b.delivered_at)) as month,
-format_date('%Y', date (b.delivered_at)) as year,
-a.category as product_category, 
-sum(a.cost) over (order by format_date('%Y-%m', date (b.delivered_at))) as total_cost,
-sum(b.sale_price) over ( order by format_date('%Y-%m', date (b.delivered_at))) as tpv,
-count(b.order_id) over ( order by format_date('%Y-%m', date (b.delivered_at))) as tpo,
-sum(b.sale_price) over (order by format_date('%Y-%m', date (b.delivered_at))) - sum(a.cost) over ( order by format_date('%Y-%m', date (b.delivered_at))) as total_profit,
-round(100.00*(sum(b.sale_price) over ( order by format_date('%Y-%m', date (b.delivered_at))) - sum(a.cost) over (order by format_date('%Y-%m', date (b.delivered_at)))) / sum(a.cost) over ( order by format_date('%Y-%m', date (b.delivered_at))),4) as profit_to_cost_ratio
-from bigquery-public-data.thelook_ecommerce.products as a join bigquery-public-data.thelook_ecommerce.order_items as b on a.id=b.product_id 
-where b.status = 'Complete'
+------------------------------------------------------------------------------------------------------------------------------------------------
 
+/* BẢNG DỮ LIỆU*/
+
+  select distinct * from (
 select *, 
-lag(tpv) over (order by month) as prev 
+concat(round(100.00 * (tpv - prev_tpv) / prev_tpv,4),'%') as revenue_growth 
+from (
+select *, 
+lag(tpv) over (order by month) as prev_tpv 
 from (
 select 
 format_date('%Y-%m', date (b.delivered_at)) as month,
 sum(b.sale_price) as tpv
 from bigquery-public-data.thelook_ecommerce.products as a join bigquery-public-data.thelook_ecommerce.order_items as b on a.id=b.product_id 
 where status = 'Complete'
-group by 1)
+group by 1)) as bang1
 
-select *, lag(tpv) over (order by month),
-tpv - lag(tpv) over (order by month) as revenue_growth
-from (
+join 
+(
 select 
 format_date('%Y-%m', date (b.delivered_at)) as month,
 format_date('%Y', date (b.delivered_at)) as year,
 a.category as product_category, 
 sum(a.cost) over (order by format_date('%Y-%m', date (b.delivered_at))) as total_cost,
-sum(b.sale_price) over ( order by format_date('%Y-%m', date (b.delivered_at))) as tpv,
 count(b.order_id) over ( order by format_date('%Y-%m', date (b.delivered_at))) as tpo,
 sum(b.sale_price) over (order by format_date('%Y-%m', date (b.delivered_at))) - sum(a.cost) over ( order by format_date('%Y-%m', date (b.delivered_at))) as total_profit,
 round(100.00*(sum(b.sale_price) over ( order by format_date('%Y-%m', date (b.delivered_at))) - sum(a.cost) over (order by format_date('%Y-%m', date (b.delivered_at)))) / sum(a.cost) over ( order by format_date('%Y-%m', date (b.delivered_at))),4) as profit_to_cost_ratio
 from bigquery-public-data.thelook_ecommerce.products as a join bigquery-public-data.thelook_ecommerce.order_items as b on a.id=b.product_id 
-where b.status = 'Complete')
+where b.status = 'Complete'
+) as bang2
+on bang1.month=bang2.month
 
+join (
+select *, 
+concat(round(100.00 * (orders - prev_orders) / prev_orders,4),'%') as order_growth 
+from (
+select *, 
+lag(orders) over (order by month) as prev_orders
+from (
+select format_date('%Y-%m', date (delivered_at)) as month,
+count(order_id) as orders
+from bigquery-public-data.thelook_ecommerce.order_items
+where status = 'Complete'
+group by 1))) as bang3
+on bang2.month=bang3.month )
 
 
 
