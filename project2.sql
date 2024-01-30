@@ -54,6 +54,38 @@ where a.status = 'Complete' and (format_date('%Y-%m-%d', date(a.delivered_at)) b
 
 ------------------------------------------------------------------------------------------------------------------------------------------------
 
+RETENTION
+
+select cohort_date,
+round(100.00* m1/m1,2) || '%' as m1,
+round(100.00* m2/m1,2) || '%' as m2,
+round(100.00* m3/m1,2) || '%' as m3
+from (
+
+select cohort_date,
+sum( case when index =1 then count else 0 end) as m1,
+sum( case when index =2 then count else 0 end) as m2,
+sum( case when index =3 then count else 0 end) as m3
+from (
+
+select cohort_date, index, count(distinct user_id) as count, sum(amount) as revenue from (
+
+select user_id, amount, 
+format_date('%Y-%m', date (a.first_purchase_date)) as cohort_date,
+created_at,
+(extract(year from a.created_at)-extract(year from a.first_purchase_date))*12+ (extract(month from a.created_at)-extract(month from a.first_purchase_date)) +1 as index
+from (
+Select user_id, 
+round(sale_price,2) as amount,
+Min(created_at) OVER (PARTITION BY user_id) as first_purchase_date,
+created_at
+from bigquery-public-data.thelook_ecommerce.order_items ) as a )
+group by 1, 2 )
+
+group by cohort_date
+order by cohort_date)
+
+  
 /* BẢNG DỮ LIỆU*/
 
   select distinct * from (
